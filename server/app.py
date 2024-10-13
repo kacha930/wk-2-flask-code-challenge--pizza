@@ -28,11 +28,13 @@ def index():
 def get_restaurants():
     restaurants = Restaurant.query.all()
     return jsonify([restaurant.to_dict() for restaurant in restaurants])
+
+
 @app.route('/restaurants/<int:id>', methods=['GET'])
 def get_restaurant(id):
     restaurant = Restaurant.query.get(id)
     if restaurant:
-        return jsonify(restaurant.to_dict_with_pizza())
+        return jsonify(restaurant.to_dict_with_pizza()) 
     else:
         return jsonify({'error': 'Restaurant not found'}), 404
     
@@ -56,7 +58,17 @@ def get_pizzas():
 @app.route('/restaurant_pizzas', methods=['POST'])
 def create_restaurant_pizza():
     data = request.get_json()
+
     try:
+        if 'price' not in data or 'pizza_id' not in data or 'restaurant_id' not in data:
+
+            return make_response(jsonify({"errors": ["Missing required fields"]}), 400)
+        
+        # pizza = pizza.query.get(data['pizza_id'])
+        # restaurant = Restaurant.query.get(data['restaurant_id'])
+
+        # if not pizza or not restaurant:
+        #     return make_response(jsonify({"errors": ["Invalid pizza or restaurant ID"]}), 400)
         new_rp = RestaurantPizza(
             price=data['price'],
             pizza_id=data['pizza_id'],
@@ -64,6 +76,7 @@ def create_restaurant_pizza():
         )
         db.session.add(new_rp)
         db.session.commit()
+
         return make_response(new_rp.to_dict_with_relationships(), 201)
     
     except Exception as e:

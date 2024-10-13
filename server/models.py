@@ -37,7 +37,7 @@ class Restaurant(db.Model, SerializerMixin):
             "id": self.id,
             "name": self.name,
             "address": self.address,
-            "restaurant_pizza": [rp.to_dict() for rp in self.pizzas]
+            "restaurant_pizzas": [rp.to_dict() for rp in self.pizzas]
         }
 
     def __repr__(self):
@@ -57,6 +57,15 @@ class Pizza(db.Model, SerializerMixin):
 
     # add serialization rules
     serialize_rules = ('-restaurants.pizza',)
+
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "ingredients": self.ingredients,
+        }
+    
 
     def __repr__(self):
         return f'<Pizza {self.name}, {self.ingredients}>'
@@ -79,7 +88,24 @@ class RestaurantPizza(db.Model, SerializerMixin):
 
     serialize_rules = ('-restaurant.pizzas', '-pizza.restaurants')
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "price": self.price,
+            "restaurant_id": self.restaurant_id,
+            "pizza_id": self.pizza_id,         
+        }
+    
+    def to_dict_with_relationships(self):
+        return {
+            "id": self.id,
+            "price": self.price,
+            "restaurant_id": self.restaurant_id,
+            "pizza_id": self.pizza_id,
+            "restaurant": self.restaurant.to_dict(),
+            "pizza": self.pizza.to_dict()
 
+        }
 
     # add validation
     @validates('price')
@@ -88,6 +114,6 @@ class RestaurantPizza(db.Model, SerializerMixin):
             raise ValueError("Price must be between 1 and 30")
         return price
     
-
+    
     def __repr__(self):
         return f'<RestaurantPizza ${self.price}>'
